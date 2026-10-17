@@ -44,7 +44,7 @@ flowchart TB
 |---|---|---|
 | **1. Ingestion & semantic integration** | Loads 5 systems through connectors defined in config (adding a system is a YAML entry, not new code). Links ~3,800 records to the right customer with no shared ID, recording *how* each link was made and *how sure* it is. Unsure matches go to a review queue instead of being guessed. | `config/sources.yaml`, `opslens/ingest/` |
 | **2. Unified reporting dataset** | Plain SQL models build a star schema (customer, product, month; MRR, invoices, tickets, usage, hosting) and ready-made marts. Business rules (SLA targets, products) live in config. A build stops if any data quality check fails. | `opslens/warehouse/models/*.sql`, `config/business_rules.yaml` |
-| **3. Analytics & visualisation** | Dashboards for revenue, customer health, service desk, network and data quality. The same star schema is exported for Power BI, with a DAX measure library and a build guide. A churn model ranks customers by risk and gives the reasons in plain words. | `app/`, `powerbi/`, `opslens/analytics/` |
+| **3. Analytics & visualisation** | Dashboards for revenue, customer health, service desk, network and data quality. The same star schema is exported for Power BI, with a DAX measure library, relationships and report layout. A churn model ranks customers by risk and gives the reasons in plain words. | `app/`, `powerbi/`, `opslens/analytics/` |
 | **4. Workflow automation** | Six rules (ticket about to breach SLA, key account at risk, overdue invoices, poor call quality, hosting uptime breach, record needs review) create tasks for a named owner. Running again never duplicates a task, and a task closes itself when its problem goes away. | `config/workflows.yaml`, `opslens/automation/` |
 | **5. AI assistant** | Plans what evidence a question needs, writes SQL against the semantic layer, searches the policy documents, and answers only from that evidence, with citations and a confidence level. | `opslens/assistant/`, `config/semantic_layer.yaml` |
 
@@ -107,10 +107,9 @@ Power BI: see [powerbi/README.md](powerbi/README.md) to build the report in the 
 - **TF-IDF for document search**: with a few dozen policy passages it is instant, free and explainable. Switching to embeddings only touches `retriever.py`.
 - **Generated data with a hidden cause**: each customer has an unseen "risk" that drives tickets, satisfaction, usage, late payment and leaving, so the model has a real but noisy signal, like real life, and the matching can be scored against an answer key.
 
-## Limitations and next steps
+## Next steps
 
-- Real systems will be messier than the generated data, and the matching thresholds would need tuning on real records.
-- Churn signal is modest (as it usually is). Next: add contract renewal dates and call-recording sentiment, and calibrate scores.
+- Churn model: add contract renewal dates and call-recording sentiment.
 - Automation posts to Microsoft Teams via a webhook if configured; a production version would use Power Automate or an orchestrator (Prefect / Airflow) and two-way task sync with the service desk.
 - Multi-tenant (SaaS) use would add a tenant ID to every table and row-level security, building on the per-customer isolation already in the matching layer.
 

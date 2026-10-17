@@ -1,10 +1,9 @@
-# Building the OpsLens Power BI report (in the browser)
+# OpsLens Power BI model
 
-You do not need Power BI Desktop (which is Windows-only). Everything below
-works at [app.powerbi.com](https://app.powerbi.com) with a work or university
-account.
+The reporting layer is exported as a Power BI semantic model: ten tables in a
+star schema, a DAX measure library and three report pages.
 
-## 1. Get the data
+## 1. Data
 
 ```bash
 python -m opslens.pipeline
@@ -26,16 +25,13 @@ saved as a named Excel table, so Power BI imports them as separate tables.
 | MRRMovements | new / expansion / contraction / churned MRR per month | 33 |
 | Tasks | tasks the automation rules created | ~120 |
 
-## 2. Upload it
+## 2. Import
 
-1. Go to **My workspace**, then **New item** (or **+ New**) → **Semantic model** → **Excel** (or
-   **Upload → Browse** and pick the file).
-2. Choose `OpsLens_PowerBI.xlsx` and import it. Power BI creates a semantic model with all ten tables.
+In Power BI, import `OpsLens_PowerBI.xlsx` as a semantic model (**New item → Semantic model → Excel**). All ten tables load.
 
-## 3. Set up the relationships (the star schema)
+## 3. Relationships (the star schema)
 
-Open the semantic model and click **Open data model**. Drag to create these
-relationships (all *one-to-many*, single direction, from the dimension to the fact):
+All *one-to-many*, single direction, from the dimension to the fact:
 
 | From (one) | To (many) |
 |---|---|
@@ -43,18 +39,15 @@ relationships (all *one-to-many*, single direction, from the dimension to the fa
 | DimMonth[month] | FactMRR, FactInvoice, FactTicket, FactTelecomUsage, MRRMovements [month] |
 | DimProduct[product_code] | FactMRR, FactInvoice [product_code] |
 
-Power BI may have guessed some of these already; delete any it guessed between two fact tables.
+There are no relationships between fact tables.
 
-## 4. Add the measures
+## 4. Measures
 
-Still in the data model, select **FactMRR**, click **New measure**, and paste
-each measure from [`measures.dax`](measures.dax) one at a time.
+All measures are in [`measures.dax`](measures.dax) and live on **FactMRR**.
 
-Format them: MRR, revenue and debt as **Currency (£)**, the `%` and rate measures as **Percentage**.
+Formats: MRR, revenue and debt as **Currency (£)**, the `%` and rate measures as **Percentage**.
 
-## 5. Build three report pages
-
-Click **Create report** (or **Auto-create** then edit). Suggested layout:
+## 5. Report pages
 
 **Page 1: Executive overview**
 - Cards: MRR, MRR Change %, Active Customers, Customer Churn Rate, SLA Met %, Overdue Debt
@@ -76,9 +69,4 @@ Click **Create report** (or **Auto-create** then edit). Suggested layout:
 - Card: Average CSAT, Median Resolution Hours, Open Tickets Breached
 - Line chart: Dropped Call Rate by month
 
-Tip: keep one colour per service line across every page, and avoid charts with two Y axes.
-
-## 6. Share it
-
-Save the report. Take a screenshot of each page and add
-them to `docs/screenshots/`, or use **File → Export → PDF**.
+Each service line keeps one colour across every page, and no chart uses two Y axes.
