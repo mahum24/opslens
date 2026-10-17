@@ -61,10 +61,10 @@ if not WAREHOUSE_PATH.exists():
 
 # ---------- sidebar ----------
 st.sidebar.title("OpsLens")
-st.sidebar.caption(f"Northgate Digital Ltd (fictional) · data to {AS_OF_DATE:%d %b %Y}")
+st.sidebar.caption(f"Northgate Digital Ltd · data to {AS_OF_DATE:%d %b %Y}")
 page = st.sidebar.radio("Page", ["Overview", "Customer health", "Service & network", "Automation",
                                  "Data integration", "Ask OpsLens", "Audit log"])
-role = st.sidebar.selectbox("Signed in as (demo)", list(sql_guard.load_policy()["roles"]),
+role = st.sidebar.selectbox("Signed in as", list(sql_guard.load_policy()["roles"]),
                             help="Changes what the AI assistant is allowed to read.")
 st.sidebar.caption(sql_guard.load_policy()["roles"][role]["description"])
 

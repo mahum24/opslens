@@ -1,6 +1,6 @@
 # Data Governance and AI Use Policy
 
-Northgate Digital Ltd (fictional). Aligned with UK GDPR and the Data Protection Act 2018.
+Northgate Digital Ltd. Aligned with UK GDPR and the Data Protection Act 2018.
 
 ## Personal data
 

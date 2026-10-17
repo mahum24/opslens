@@ -1,6 +1,6 @@
 # Billing and Credit Control Policy
 
-Northgate Digital Ltd (fictional). Version 2.0.
+Northgate Digital Ltd. Version 2.0.
 
 ## Invoicing
 

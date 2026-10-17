@@ -1,6 +1,6 @@
-"""Generate the five source systems of a fictional IT & telecoms company.
+"""Generate the five source systems of Northgate Digital Ltd, an IT & telecoms company.
 
-Northgate Digital Ltd is made up. It sells telecoms, cloud hosting, data
+It sells telecoms, cloud hosting, data
 centre space, managed IT support, software projects and hardware to small
 businesses around Teesside.
 

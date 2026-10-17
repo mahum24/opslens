@@ -80,5 +80,5 @@ Tip: keep one colour per service line across every page, and avoid charts with t
 
 ## 6. Share it
 
-Save the report. For the portfolio, take a screenshot of each page and add
+Save the report. Take a screenshot of each page and add
 them to `docs/screenshots/`, or use **File → Export → PDF**.

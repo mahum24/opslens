@@ -15,7 +15,7 @@ SOURCES_DIR = DATA_DIR / "sources"
 WAREHOUSE_PATH = DATA_DIR / "warehouse.duckdb"
 POWERBI_EXPORT_DIR = DATA_DIR / "powerbi"
 
-# The day the platform "runs" on. Synthetic data stops here, so every
+# The day the platform "runs" on. Generated data stops here, so every
 # "today" in the platform means this date, not the real clock.
 AS_OF_DATE = date(2026, 9, 30)
 HISTORY_START = date(2024, 1, 1)

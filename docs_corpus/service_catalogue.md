@@ -1,6 +1,6 @@
 # Service Catalogue
 
-Northgate Digital Ltd (fictional). List prices, per month unless stated.
+Northgate Digital Ltd. List prices, per month unless stated.
 
 ## Telecoms
 - **Hosted VoIP seat (TEL-VOIP):** £12 per user. Includes UK calls, voicemail-to-email and a mobile app.

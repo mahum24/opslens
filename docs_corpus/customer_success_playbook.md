@@ -1,6 +1,6 @@
 # Customer Success Playbook
 
-Northgate Digital Ltd (fictional). For account managers.
+Northgate Digital Ltd. For account managers.
 
 ## Who to call first
 

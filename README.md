@@ -7,9 +7,8 @@ a churn-risk model that explains itself, rule-based workflow automation, and an
 AI assistant that answers questions in plain English **and shows the evidence
 behind every answer**.
 
-It is built around one company, *Northgate Digital Ltd*, which is **fictional**.
-All data is synthetic, generated to look like real SME data, so the project can
-be public.
+It runs on *Northgate Digital Ltd*, a sample company whose five systems are
+produced by a data generator (`opslens/sources/generate.py`).
 
 ![Overview dashboard](docs/screenshots/Overview.png)
 
@@ -49,7 +48,7 @@ flowchart TB
 | **4. Workflow automation** | Six rules (ticket about to breach SLA, key account at risk, overdue invoices, poor call quality, hosting uptime breach, record needs review) create tasks for a named owner. Running again never duplicates a task, and a task closes itself when its problem goes away. | `config/workflows.yaml`, `opslens/automation/` |
 | **5. AI assistant** | Plans what evidence a question needs, writes SQL against the semantic layer, searches the policy documents, and answers only from that evidence, with citations and a confidence level. | `opslens/assistant/`, `config/semantic_layer.yaml` |
 
-## Results on the synthetic data
+## Results
 
 | | |
 |---|---|
@@ -80,7 +79,7 @@ control of its data. So:
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt && pip install -e .
 
-python -m opslens.pipeline --regenerate    # synthetic data → warehouse → model → rules → Power BI export
+python -m opslens.pipeline --regenerate    # generate data → warehouse → model → rules → Power BI export
 streamlit run app/streamlit_app.py         # dashboards and the AI assistant
 python -m opslens.assistant.cli "Which high-risk customers pay us the most?"   # ask from the terminal
 pytest                                     # 27 tests
@@ -106,11 +105,11 @@ Power BI: see [powerbi/README.md](powerbi/README.md) to build the report in the 
 - **DuckDB + plain SQL** rather than a heavy platform: an SME can run the whole thing on one server, and anyone who knows SQL can read every model. The same models would move to Postgres, Fabric or Snowflake with small changes.
 - **Billing as the customer master**: if we invoice you, you are a customer. Every other system is matched to billing, never to each other.
 - **TF-IDF for document search**: with a few dozen policy passages it is instant, free and explainable. Switching to embeddings only touches `retriever.py`.
-- **Synthetic data with a hidden cause**: each customer has an unseen "risk" that drives tickets, satisfaction, usage, late payment and leaving, so the model has a real but noisy signal, like real life, and the matching can be scored against an answer key.
+- **Generated data with a hidden cause**: each customer has an unseen "risk" that drives tickets, satisfaction, usage, late payment and leaving, so the model has a real but noisy signal, like real life, and the matching can be scored against an answer key.
 
 ## Limitations and next steps
 
-- The data is synthetic; real systems will be messier, and the matching thresholds would need tuning on real records.
+- Real systems will be messier than the generated data, and the matching thresholds would need tuning on real records.
 - Churn signal is modest (as it usually is). Next: add contract renewal dates and call-recording sentiment, and calibrate scores.
 - Automation posts to Microsoft Teams via a webhook if configured; a production version would use Power Automate or an orchestrator (Prefect / Airflow) and two-way task sync with the service desk.
 - Multi-tenant (SaaS) use would add a tenant ID to every table and row-level security, building on the per-customer isolation already in the matching layer.

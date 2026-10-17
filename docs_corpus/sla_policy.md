@@ -1,6 +1,6 @@
 # Service Level Agreement Policy
 
-Northgate Digital Ltd (fictional company used for this demo). Version 3.2, effective 1 April 2025.
+Northgate Digital Ltd. Version 3.2, effective 1 April 2025.
 
 ## Ticket priorities and targets
 

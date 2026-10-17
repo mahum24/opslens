@@ -1,7 +1,7 @@
 """Run the whole platform end to end.
 
     python -m opslens.pipeline              # build from the existing source files
-    python -m opslens.pipeline --regenerate # make fresh synthetic source data first
+    python -m opslens.pipeline --regenerate # make fresh source data first
 """
 import argparse
 import time
@@ -26,12 +26,12 @@ def step(name):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--regenerate", action="store_true", help="generate fresh synthetic source data")
+    ap.add_argument("--regenerate", action="store_true", help="generate fresh source data")
     ap.add_argument("--skip-export", action="store_true", help="skip the Power BI export")
     args = ap.parse_args(argv)
 
     if args.regenerate or not (SOURCES_DIR / "billing/customers.csv").exists():
-        step("Generating synthetic source systems")
+        step("Generating source systems")
         generate()
 
     WAREHOUSE_PATH.parent.mkdir(parents=True, exist_ok=True)
