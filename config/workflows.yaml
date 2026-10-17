@@ -1,0 +1,92 @@
+# Layer 4: business workflow automation.
+# Each rule is a question asked of the warehouse every run. Every row it
+# returns becomes a task for a named owner (and a notification), unless an
+# open task for the same thing already exists, so people are never spammed.
+# Columns a rule returns can be used in the templates as {column}.
+
+rules:
+  - id: sla_at_risk
+    name: Ticket about to breach SLA
+    description: Open tickets that have used 75% or more of their SLA time.
+    owner: Service Desk Lead
+    priority_from: priority
+    sql: |
+      SELECT t.ticket_id, t.priority, t.category, d.customer_name, round(t.age_hours, 1) AS age_hours,
+             t.target_hours, round(100 * t.sla_used_ratio) AS pct_used
+      FROM core.fct_ticket t LEFT JOIN core.dim_customer d USING (customer_ref)
+      WHERE t.resolved_at IS NULL AND t.sla_used_ratio >= 0.75
+    dedupe_key: "{ticket_id}"
+    title: "{priority} ticket {ticket_id} for {customer_name} has used {pct_used:.0f}% of its SLA"
+    detail: "{category} ticket open {age_hours} h against a {target_hours} h target. Escalate or update the customer."
+    channel: teams
+
+  - id: churn_risk_key_account
+    name: Key account at high risk of leaving
+    description: High churn-risk customers paying £300 a month or more.
+    owner: "{account_manager}"
+    priority: P2
+    sql: |
+      SELECT customer_ref, customer_name, account_manager, current_mrr, round(100 * churn_probability) AS risk_pct,
+             reason_1, coalesce(reason_2, '') AS reason_2
+      FROM mart.customer_health
+      WHERE risk_band = 'High' AND current_mrr >= 300
+    dedupe_key: "{customer_ref}"
+    title: "Book a review call with {customer_name} (£{current_mrr:,.0f}/month, {risk_pct:.0f}% risk)"
+    detail: "Main reasons: {reason_1}. {reason_2}. See the customer success playbook for the review call checklist."
+    channel: email
+
+  - id: overdue_invoices
+    name: Invoices more than 30 days overdue
+    description: Customers owing money more than 30 days past the due date.
+    owner: Finance
+    priority: P3
+    sql: |
+      SELECT r.customer_ref, d.customer_name, count(*) AS invoices, sum(r.amount_gbp) AS owed_gbp,
+             max(r.days_overdue) AS worst_days
+      FROM mart.receivables r JOIN core.dim_customer d USING (customer_ref)
+      WHERE r.days_overdue > 30 GROUP BY ALL
+    dedupe_key: "{customer_ref}"
+    title: "Chase {customer_name}: £{owed_gbp:,.2f} over {invoices} invoices, up to {worst_days} days overdue"
+    detail: "Send the second reminder from the billing policy. If over 60 days, consider a credit hold and tell the account manager."
+    channel: email
+
+  - id: call_quality_drop
+    name: Poor call quality on a customer's lines
+    description: Customers with more than 2% dropped calls in the latest month.
+    owner: Network Operations
+    priority: P2
+    sql: |
+      SELECT u.customer_ref, d.customer_name, u.calls, round(100 * u.dropped_call_rate, 1) AS dropped_pct
+      FROM core.fct_telecom_usage_month u JOIN core.dim_customer d USING (customer_ref)
+      WHERE u.month = (SELECT max(month) FROM core.dim_month) AND u.dropped_call_rate > 0.02 AND d.status = 'Active'
+    dedupe_key: "{customer_ref}"
+    title: "Check lines for {customer_name}: {dropped_pct}% of {calls} calls dropped last month"
+    detail: "Run line diagnostics and check the SIP trunk before the customer raises it."
+    channel: teams
+
+  - id: hosting_uptime_breach
+    name: Hosting uptime below target
+    description: Servers under the 99.9% uptime target last month; the customer may be owed a service credit.
+    owner: Hosting Team
+    priority: P2
+    sql: |
+      SELECT h.server_id, h.customer_ref, d.customer_name, h.uptime_pct, h.incidents
+      FROM core.fct_hosting_month h JOIN core.dim_customer d USING (customer_ref)
+      WHERE h.month = (SELECT max(month) FROM core.dim_month) AND NOT h.uptime_target_met
+    dedupe_key: "{server_id}"
+    title: "{server_id} ({customer_name}) ran at {uptime_pct}% uptime last month"
+    detail: "Check the {incidents} incident(s), and whether a service credit is due under the SLA policy."
+    channel: teams
+
+  - id: data_match_review
+    name: Record needs a person to confirm its customer
+    description: Records from another system that could not be linked to a customer with confidence.
+    owner: Data Steward
+    priority: P4
+    sql: |
+      SELECT source_system, source_key, source_label, coalesce(suggested_customer_ref, 'none') AS suggested,
+             confidence FROM integration.match_review_queue
+    dedupe_key: "{source_system}:{source_key}"
+    title: "Confirm the customer for {source_system} record '{source_label}'"
+    detail: "Suggested match: {suggested} (confidence {confidence:.0%}). Confirm or correct it in the review queue."
+    channel: email

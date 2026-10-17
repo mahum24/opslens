@@ -1,0 +1,30 @@
+# Layer 1 connectors. Adding a new system means adding an entry here,
+# not writing a new loader. Paths are relative to data/sources/.
+sources:
+  - system: crm
+    description: HubSpot-style CRM, exported through its API as JSON
+    tables:
+      - {name: crm_companies, path: crm/companies.json, format: json, record_path: results, flatten: properties}
+      - {name: crm_contacts, path: crm/contacts.json, format: json, record_path: results, pii: [firstname, lastname, email, phone]}
+
+  - system: billing
+    description: Finance and billing system, CSV exports with UK dates
+    tables:
+      - {name: billing_customers, path: billing/customers.csv, format: csv, pii: [billing_email]}
+      - {name: billing_subscriptions, path: billing/subscriptions.csv, format: csv}
+      - {name: billing_invoice_lines, path: billing/invoice_lines.csv, format: csv}
+
+  - system: servicedesk
+    description: IT service desk tickets, free-text organisation names
+    tables:
+      - {name: sd_tickets, path: servicedesk/tickets.csv, format: csv, pii: [requester_email]}
+
+  - system: telecoms
+    description: Telecoms platform, monthly call records per account number
+    tables:
+      - {name: tel_usage, path: telecoms/usage_monthly.csv, format: csv}
+
+  - system: hosting
+    description: Hosting and data centre monitoring, JSON lines per server per month
+    tables:
+      - {name: host_metrics, path: hosting/server_metrics.jsonl, format: jsonl}

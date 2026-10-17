@@ -1,0 +1,22 @@
+# Business rules the warehouse uses. Kept here so the business can change
+# them without touching SQL. Loaded into the ref schema on every build.
+
+sla_targets:          # resolution target in hours, from the SLA policy
+  - {priority: P1, target_hours: 4, description: Service down for the whole site}
+  - {priority: P2, target_hours: 8, description: Service badly affected for many users}
+  - {priority: P3, target_hours: 24, description: One user or one service affected}
+  - {priority: P4, target_hours: 72, description: Request or question}
+
+products:
+  - {product_code: TEL-VOIP, product_name: Hosted VoIP seat, service_line: Telecoms, recurring: true}
+  - {product_code: TEL-FTTP, product_name: Business FTTP broadband, service_line: Telecoms, recurring: true}
+  - {product_code: TEL-LL, product_name: Leased line 100Mb, service_line: Telecoms, recurring: true}
+  - {product_code: TEL-MOB, product_name: Business mobile SIM, service_line: Telecoms, recurring: true}
+  - {product_code: CLD-VM, product_name: Cloud virtual server, service_line: Cloud Hosting, recurring: true}
+  - {product_code: CLD-BKP, product_name: Cloud backup 1TB, service_line: Cloud Hosting, recurring: true}
+  - {product_code: DC-COLO, product_name: Data centre colocation (1U), service_line: Data Centre, recurring: true}
+  - {product_code: MSP-SUP, product_name: Managed IT support per user, service_line: Managed IT, recurring: true}
+  - {product_code: SW-DEV, product_name: Software development project, service_line: Software Development, recurring: false}
+  - {product_code: HW-SALE, product_name: Hardware supply, service_line: Hardware, recurring: false}
+
+hosting_uptime_target_pct: 99.9

@@ -1,0 +1,56 @@
+// OpsLens - DAX measures. Create each one in Power BI with "New measure"
+// (put them all on the FactMRR table, or a blank "Measures" table).
+
+// ---------- Revenue ----------
+MRR =
+VAR m = MAX ( DimMonth[month] )
+RETURN CALCULATE ( SUM ( FactMRR[mrr] ), DimMonth[month] = m )
+
+MRR Last Month =
+VAR m = MAX ( DimMonth[month] )
+RETURN CALCULATE ( SUM ( FactMRR[mrr] ), REMOVEFILTERS ( DimMonth ), DimMonth[month] = EDATE ( m, -1 ) )
+
+MRR Change % = DIVIDE ( [MRR] - [MRR Last Month], [MRR Last Month] )
+
+Active Customers =
+VAR m = MAX ( DimMonth[month] )
+RETURN CALCULATE ( DISTINCTCOUNT ( FactMRR[customer_ref] ), DimMonth[month] = m )
+
+ARPA = DIVIDE ( [MRR], [Active Customers] )      // average revenue per account
+
+Invoiced Revenue = SUM ( FactInvoice[amount_gbp] )
+
+One-off Revenue = CALCULATE ( [Invoiced Revenue], FactInvoice[recurring] = FALSE () )
+
+Overdue Debt = CALCULATE ( SUM ( FactInvoice[amount_gbp] ), FactInvoice[is_overdue] = TRUE () )
+
+Average Days to Pay = AVERAGE ( FactInvoice[days_to_pay] )
+
+// ---------- Churn ----------
+Churned Customers = SUM ( MRRMovements[churned_customers] )
+
+Churned MRR = SUM ( MRRMovements[churned_mrr] )
+
+Customer Churn Rate = AVERAGE ( MRRMovements[customer_churn_rate] )
+
+MRR at High Risk = CALCULATE ( SUM ( CustomerHealth[current_mrr] ), CustomerHealth[risk_band] = "High" )
+
+Share of MRR at High Risk = DIVIDE ( [MRR at High Risk], SUM ( CustomerHealth[current_mrr] ) )
+
+// ---------- Service desk ----------
+Tickets = COUNTROWS ( FactTicket )
+
+SLA Met % =
+DIVIDE (
+    CALCULATE ( COUNTROWS ( FactTicket ), FactTicket[sla_status] = "Met" ),
+    CALCULATE ( COUNTROWS ( FactTicket ), FactTicket[sla_status] IN { "Met", "Breached" } )
+)
+
+Open Tickets Breached = CALCULATE ( COUNTROWS ( FactTicket ), FactTicket[sla_status] = "Open - breached" )
+
+Average CSAT = AVERAGE ( FactTicket[csat_score] )
+
+Median Resolution Hours = MEDIAN ( FactTicket[resolution_hours] )
+
+// ---------- Network ----------
+Dropped Call Rate = DIVIDE ( SUM ( FactTelecomUsage[dropped_calls] ), SUM ( FactTelecomUsage[calls] ) )

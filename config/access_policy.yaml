@@ -1,0 +1,25 @@
+# Who may ask the AI assistant about what.
+# The SQL guard enforces this on every query the model writes, so a role
+# cannot reach a table just by asking cleverly. Raw, staging and integration
+# schemas (where personal data lives) are never reachable by any role.
+
+roles:
+  leadership:
+    description: Directors - everything in the reporting layer
+    tables: ["mart.*", "core.*", "ops.tasks"]
+  account_manager:
+    description: Account managers - customer health, usage and support history
+    tables: [mart.customer_health, mart.customer_month, core.dim_customer, core.dim_product, core.fct_mrr_month,
+             core.fct_ticket, core.fct_telecom_usage_month, core.fct_hosting_month, ops.tasks]
+  service_desk:
+    description: Service desk - tickets, SLAs and technical health, no revenue
+    tables: [mart.sla_monthly, core.dim_customer, core.fct_ticket, core.fct_telecom_usage_month,
+             core.fct_hosting_month, ops.tasks]
+  finance:
+    description: Finance - revenue, billing and debt
+    tables: [mart.mrr_monthly, mart.revenue_monthly, mart.receivables, core.dim_customer, core.dim_product,
+             core.fct_mrr_month, core.fct_invoice_line]
+
+# Columns never sent to an external AI model, whatever the role.
+never_send_externally:
+  patterns: [email, phone, postcode]

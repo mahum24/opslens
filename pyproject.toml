@@ -1,0 +1,11 @@
+[project]
+name = "opslens"
+version = "0.1.0"
+description = "AI-assisted decision support platform for an IT & telecoms SME"
+requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+include = ["opslens*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

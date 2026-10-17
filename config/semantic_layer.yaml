@@ -1,0 +1,65 @@
+# The semantic layer: what the data means, in business words.
+# The AI assistant reads this (plus live column lists from the warehouse)
+# before writing any SQL, and the dashboards use the same definitions, so
+# "MRR" or "churn" means one thing everywhere.
+
+glossary:
+  customer: >
+    A business we invoice. The billing system is the master list; every other
+    system is linked to it through customer_ref (e.g. CUST0042).
+  active customer: A customer with at least one subscription that has not ended.
+  churned customer: A customer whose subscriptions have all ended. churn_date is the day the last one ended.
+  MRR: >
+    Monthly recurring revenue: quantity x monthly price of every subscription
+    active at the end of the month. Excludes one-off software projects and hardware.
+  SLA: >
+    Service level agreement: the time we promise to resolve a ticket in, by
+    priority (P1 4h, P2 8h, P3 24h, P4 72h). A ticket breaches when it is resolved,
+    or still open, after its target.
+  churn risk: >
+    The churn model's estimated probability that an active customer leaves in the
+    next 90 days. risk_band is High (top 10%), Medium (next 20%) or Low.
+  service line: One of Telecoms, Cloud Hosting, Data Centre, Managed IT, Software Development, Hardware.
+
+metrics:
+  - {name: MRR, sql: "sum(mrr) FROM mart.mrr_monthly or core.fct_mrr_month", note: "Use mart.mrr_monthly for company totals."}
+  - {name: Customer churn rate, sql: "mart.mrr_monthly.customer_churn_rate", note: "Customers lost this month / active customers last month."}
+  - {name: SLA met rate, sql: "met / resolved tickets in mart.sla_monthly", note: "Only resolved tickets count."}
+  - {name: Average CSAT, sql: "avg(csat_score) in core.fct_ticket", note: "1-5 scale; most tickets have no score."}
+  - {name: Overdue debt, sql: "sum(amount_gbp) FROM mart.receivables WHERE days_overdue > 0"}
+
+tables:
+  mart.customer_health: >
+    One row per ACTIVE customer as of the reporting date: current MRR, tickets,
+    SLA breaches and CSAT over the last 90 days, overdue debt, churn probability,
+    risk band and the top three plain-English reasons for the risk.
+  mart.mrr_monthly: >
+    One row per month: total MRR, active/new/churned customers, MRR movements
+    (new, expansion, contraction, churned) and churn rates.
+  mart.revenue_monthly: One row per month per service line, invoiced revenue split recurring/one-off.
+  mart.sla_monthly: One row per month per priority, ticket counts, SLA met rate, median resolution hours, CSAT.
+  mart.receivables: One row per unpaid invoice with amount, days overdue and ageing bucket.
+  mart.customer_month: One row per customer per month with MRR, tickets, SLA breaches, CSAT, calls, uptime.
+  core.dim_customer: One row per customer (active and churned) with name, sector, town, account manager, status, churn_date.
+  core.dim_product: The product catalogue with service_line and whether it is recurring.
+  core.fct_mrr_month: One row per subscription per month it was active, with its MRR.
+  core.fct_invoice_line: Every invoice line with amount, product, service_line, due/paid dates, days_to_pay, is_overdue.
+  core.fct_ticket: Every service desk ticket with customer_ref, priority, category, opened/resolved times, resolution_hours, sla_status, csat_score.
+  core.fct_telecom_usage_month: Calls, minutes, dropped calls and data per telecoms customer per month.
+  core.fct_hosting_month: Uptime %, incidents and CPU per hosted server per month.
+  ops.tasks: Tasks created by the workflow automation rules, with owner, priority and status.
+
+examples:
+  - question: What is our MRR now and how has it changed over the last 6 months?
+    sql: |
+      SELECT month, mrr, active_customers, churned_customers FROM mart.mrr_monthly
+      ORDER BY month DESC LIMIT 6
+  - question: Which high-risk customers pay us the most?
+    sql: |
+      SELECT customer_name, account_manager, current_mrr, churn_probability, reason_1, reason_2
+      FROM mart.customer_health WHERE risk_band = 'High' ORDER BY current_mrr DESC LIMIT 10
+  - question: Why did tickets go up in March 2026?
+    sql: |
+      SELECT category, priority, count(*) AS tickets FROM core.fct_ticket
+      WHERE month IN (DATE '2026-02-01', DATE '2026-03-01')
+      GROUP BY ALL ORDER BY tickets DESC
